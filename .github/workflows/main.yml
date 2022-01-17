@@ -1,0 +1,86 @@
+name: Package Mod
+on:
+  push:
+    tags:
+      - 'v*'
+env:
+  ARCHIVE_NAME: TheMidnightOil
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 50
+      - name: Reset Timestamp of ESP file
+        run: |
+          from datetime import datetime
+          import yaml
+          import time
+          import os
+          from pathlib import Path
+          def openConfigFile(configPath):
+              try:
+                  with open(configPath, 'r') as stream:
+                      try:
+                          config = yaml.safe_load(stream)
+                      except:
+                          return None
+                      return config
+              except:
+                  print("No timestamps override found, skipping")
+          def setTimeStamp(filepath, timestamp):
+              os.utime(filepath, (timestamp, timestamp))
+          def resetTimestamps(overrides):
+              if not overrides:
+                  return
+              for fileData in overrides:
+                  filepath = fileData.get("path")
+                  timestamp = fileData.get("timestamp")
+                  if not filepath or not timestamp:
+                      continue
+                  fullpath = Path(os.path.join("Data Files", filepath))
+                  print(f"Resetting timestamp for {fullpath} to {timestamp}")
+                  setTimeStamp(fullpath, timestamp)
+          timestampOverrides = openConfigFile("timestampOverrides.yaml")
+          if timestampOverrides:
+              resetTimestamps(timestampOverrides)
+        shell: python
+      - name: Build Project
+        uses: edgarrc/action-7z@v1
+        with:
+          args: 7z a ${{env.ARCHIVE_NAME}}.7z "Data Files"
+      - name: Create Release
+        uses: notlmn/release-with-changelog@v2
+        with:
+          header: '### Changelog'
+          include-hash: true
+          include-range: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload to Github
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: ${{env.ARCHIVE_NAME}}.7z
+      - name: Deploy to Nexus
+        uses: greatness7/nexusmods_file_updater@v2
+        if: ${{ env.MOD_ID != null }}
+        with:
+          username: ${{secrets.NEXUS_USERNAME}}
+          password: ${{secrets.NEXUS_PASSWORD}}
+          game_domain_name: "morrowind"
+          mod_id: ${{env.MOD_ID}}
+          file_name: ${{env.FILE_NAME}}
+          file_version: ${{github.ref_name}}
+          update_version: true
+          file_category: ${{env.FILE_CATEGORY}}
+          new_existing_version: ${{env.NEW_EXISTING_VERSION}}
+          original_file: ".*"
+          remove_old_version: ${{env.REMOVE_OLD_VERSION}}
+          file_description: ${{env.FILE_DESCRIPTION}}
+          remove_nmm_button: false
+          set_as_main_nmm: false
+          requirements_pop_up: ${{env.REQUIREMENTS_POP_UP}}
+          file_path: "${{env.ARCHIVE_NAME}}.7z"
