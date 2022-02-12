@@ -46,6 +46,10 @@ this.lightPatterns = {
     "streetlight",
     "torch",
     "light_spear_skull",
+    "t_de_var_swimlant",
+    "ab_light_delant",
+    "ab_light_cavelantern",
+    "ab_light_comsconsilv",
 }
 
 this.candlePatterns = {
