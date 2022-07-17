@@ -17,12 +17,12 @@ local function onActivate(e)
                 return false
             end
             if not ref.data.lightTurnedOff then
-                tes3.playSound{ reference = tes3.player, sound = "mer_tmo_alight", pitch = 1.0}
+                tes3.playSound{ reference = tes3.player, sound = "mer_tmo_alight"}
                 common.removeLight(ref)
                 common.setToggledDay(ref)
                 return false
             else
-                tes3.playSound{ reference = tes3.player, sound = "mer_tmo_alight", pitch = 1.0}
+                tes3.playSound{ reference = tes3.player, soundPath = "mer_lntrn\\light_on.wav" }
                 common.onLight(ref)
                 common.setToggledDay(ref)
                 return false
@@ -100,10 +100,10 @@ local function toggleStaticLights(e)
 
                         if common.isSwitchable(ref.object) then
                             if not ref.data.lightTurnedOff then
-                                tes3.playSound{ reference = tes3.player, sound = "mer_tmo_alight", pitch = 1.0}
+                                tes3.playSound{ reference = tes3.player, sound = "mer_tmo_alight"}
                                 common.removeLight(ref)
                             else
-                                tes3.playSound{ reference = tes3.player, sound = "mer_tmo_alight", pitch = 1.0}
+                                tes3.playSound{ reference = tes3.player, soundPath = "mer_lntrn\\light_on.wav" }
                                 common.onLight(ref)
                             end
                             common.setToggledDay(ref)

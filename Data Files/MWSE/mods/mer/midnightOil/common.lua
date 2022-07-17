@@ -220,7 +220,9 @@ local function isCollisionNode(node)
     return node:isInstanceOfType(tes3.niType.RootCollisionNode)
 end
 
+---@param lightRef tes3reference
 function this.onLight(lightRef)
+    if not lightRef.supportsLuaData then return end
     lightRef.data.lightTurnedOff = false
     lightRef.modified = true
     if (not lightRef.object.mesh) or (string.len(lightRef.object.mesh) == 0) then
@@ -254,7 +256,7 @@ function this.onLight(lightRef)
         )
     else
         lightNode.ambient = tes3vector3.new(0,0,0)
-        lightNode.diffuse = tes3vector3.new(255, 255, 255)
+        lightNode.diffuse = tes3vector3.new(1, 1, 1)
     end
     lightNode:setAttenuationForRadius(lightRef.object.radius)
     --see if there's an attachlight node to work with
