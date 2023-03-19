@@ -1,3 +1,4 @@
+local common = require("mer.midnightOil.common")
 local conf = require("mer.midnightOil.config")
 local modName = "The Midnight Oil"
 
@@ -27,12 +28,38 @@ local function registerMCM()
             variable = mwse.mcm.createTableVariable{ id = "enabled", table = config }
         }
 
-
         generalCategory:createKeyBinder{
             label = "Hotkey for light toggle",
             description = "Hold this key down when activating a carryable light to toggle it on or off.",
             allowCombinations = true,
             variable = mwse.mcm:createTableVariable{ id = "toggleHotkey", table = config }
+        }
+
+        generalCategory:createDropdown{
+            label = "Log Level",
+            description = "The level of logging to use. Set to 'INFO' for normal use.",
+            options = {
+                { label = "TRACE", value = "TRACE"},
+                { label = "DEBUG", value = "DEBUG"},
+                { label = "INFO", value = "INFO"},
+                { label = "ERROR", value = "ERROR"},
+                { label = "NONE", value = "NONE"},
+            },
+            variable = mwse.mcm.createTableVariable{ id = "logLevel", table = config },
+            callback = function(self)
+                for _, log in pairs(common.loggers) do
+                    log:setLogLevel(self.variable.value)
+                end
+            end
+        }
+    end
+
+    do
+        local dungeonLightsCategory = page:createCategory("Dungeon Lights")
+        dungeonLightsCategory:createYesNoButton{
+            label = "Turn dungeon lights off by default",
+            description = "If enabled, dungeons with no NPCs in them will have all their lights turned off when you first enter them.",
+            variable = mwse.mcm.createTableVariable{ id = "dungeonLightsOff", table = config }
         }
     end
 

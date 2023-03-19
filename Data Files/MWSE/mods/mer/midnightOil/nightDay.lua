@@ -1,6 +1,7 @@
 local common = require("mer.midnightOil.common")
-local conf = require("mer.midnightOil.config")
-local config = conf.getConfig()
+local logger = common.createLogger("nightDay")
+local config = require("mer.midnightOil.config").getConfig()
+local Dungeon = require("mer.midnightOil.dungeon")
 
 local function doUpdateLight(reference)
     -- add some randomness to stagger window lighting.
@@ -19,12 +20,10 @@ local function doUpdateLight(reference)
 end
 
 local function updateLightsInCell(cell)
-
     if config.settlementsOnly and not cell.restingIsIllegal then
         -- Only update lights in settlements
         return
     end
-
     for reference in cell:iterateReferences(tes3.objectType.light) do
         if not reference.supportsLuaData then
             --Can't support lua data
@@ -60,7 +59,8 @@ local function onSimulate(e)
     if (needUpdate or timeDifference > 0.08) then
         needUpdate = false
         lastUpdateTimestamp = e.timestamp
-        if tes3.player.cell.isInterior ~= true then
+        local cell = tes3.player.cell
+        if cell.isInterior ~= true then
             for _, cell in pairs(tes3.getActiveCells()) do
                 updateLightsInCell(cell)
             end
@@ -71,11 +71,24 @@ end
 event.register("simulate", onSimulate)
 
 
--- When we load the game or change cell, flag an update.
-local function flagNeedForUpdate()
+local function turnOffDungeonLights()
     if not common.modActive() then return end
+    if not config.dungeonLightsOff then return end
+    logger:debug("turnOffDungeonLights()")
+    local cell = tes3.player.cell
+    local dungeon = Dungeon:new(cell)
+    if dungeon then
+        logger:debug("turnOffDungeonLights() - processing dungeon")
+        dungeon:processLights()
+    end
+end
+
+-- When we load the game or change cell, flag an update.
+local function enterCell()
+    if not common.modActive() then return end
+    turnOffDungeonLights()
     needUpdate = true
 end
-event.register("loaded", flagNeedForUpdate)
-event.register("cellChanged", flagNeedForUpdate)
+event.register("loaded", enterCell)
+event.register("cellChanged", enterCell)
 

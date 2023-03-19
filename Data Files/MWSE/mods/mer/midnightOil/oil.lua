@@ -23,7 +23,7 @@ local function equipOil(e1)
                 filter = function(e2)
                     return (
                         common.isOilLantern(e2.item) == true and
-                        ( not e2.itemData or e2.itemData.timeLeft < e2.item.time  )    
+                        ( not e2.itemData or e2.itemData.timeLeft < e2.item.time  )
                     )
                 end,
                 callback = function(e3)
@@ -48,7 +48,7 @@ event.register("equip", equipOil, { filter = tes3.player, priority = -1000 } )
 
 local function onTooltip(e)
     if not common.modActive() then return end
-    if e.object ~= nil then 
+    if e.object ~= nil then
         if common.isOil(e.object) then
             local amount = e.itemData and e.itemData.data.oilRemaining or defaultOilAmount
             local block = e.tooltip:createBlock()
@@ -63,7 +63,7 @@ local function onTooltip(e)
                 max = defaultOilAmount
             }
             oilFillbar.width = 200
-            
+
         end
     end
 end
@@ -77,13 +77,13 @@ local function onActivateAshMire(e)
             title = "Refill Oil Flask",
             noResultsText = "You have no oil flasks to refill.",
             filter = function(e2)
-                return ( 
+                return (
                     common.isOil(e2.item) == true and
-                    ( 
-                        not e2.itemData or 
-                        not e2.itemData.data.oilRemaining or 
-                        e2.itemData.data.oilRemaining < defaultOilAmount  
-                    )  
+                    (
+                        not e2.itemData or
+                        not e2.itemData.data.oilRemaining or
+                        e2.itemData.data.oilRemaining < defaultOilAmount
+                    )
                 )
             end,
             callback = function(e3)

@@ -1,5 +1,24 @@
 local this = {}
 local conf = require("mer.midnightOil.config")
+local config = conf.getConfig()
+
+---@type mwseLogger[]
+this.loggers = {}
+--- Create a new logger
+---@param name string
+---@return table<string, mwseLogger>
+this.createLogger = function(name)
+    local MwseLogger = require("logging.logger")
+    local logger = MwseLogger.new{
+        name = string.format("Midnight Oil - %s", name),
+        logLevel = conf.getConfig().logLevel,
+        includeTimestamp = true,
+    }
+    this.loggers[name] = logger
+    return logger
+end
+local logger = this.createLogger("Common")
+
 this.merchantContainers = {
     ["ra'virr"] = "mer_lntrn_merch",
     ["arrille"] = "mer_lntrn_merch",
@@ -40,6 +59,7 @@ this.oilSource = {
 this.lightPatterns = {
     "candle",
     "lantern",
+    "brazier",
     "lamp",
     "chandelier",
     "sconce",
@@ -166,6 +186,31 @@ local function traverse(roots)
         end
     end
     return coroutine.wrap(iter)
+end
+
+function this.canProcessLight(reference)
+    logger:trace("Processing light %s", reference.object.id)
+    if not reference.supportsLuaData then
+        logger:trace("Reference %s does not support lua data", reference.object.id)
+        --Can't support lua data
+        return false
+    end
+    if not reference.sceneNode then
+        logger:trace("Reference %s has no scene node", reference.object.id)
+        --No scene node
+        return false
+    end
+    if (config.staticLightsOnly and reference.object.canCarry) then
+        logger:trace("Reference %s is a carryable light", reference.object.id)
+        --Carryable light when staticLightsOnly is set
+        return false
+    end
+    if not this.isSwitchable(reference.object) then
+        logger:trace("Reference %s is not a switchable light", reference.object.id)
+        --Not a switchable light
+        return false
+    end
+    return true
 end
 
 function this.removeLight(ref)

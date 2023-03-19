@@ -13,6 +13,8 @@ this.defaultValues = {
     merchants = {},
     settlementsOnly = true,
     staticLightsOnly = true,
+    dungeonLightsOff = true,
+    logLevel = "INFO",
 }
 function this.getConfig()
     inMemConfig = inMemConfig or mwse.loadConfig(this.configPath, this.defaultValues)
@@ -22,7 +24,6 @@ function this.saveConfig(newConfig)
     inMemConfig = newConfig
     mwse.saveConfig(this.configPath, newConfig)
 end
-
 function this.saveConfigValue(key, val)
     local config = this.getConfig()
     if config then

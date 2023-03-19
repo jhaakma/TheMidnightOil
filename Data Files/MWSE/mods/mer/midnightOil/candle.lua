@@ -12,7 +12,7 @@ local function equipCandle(e1)
                     return (
                         common.isCandleLantern(e2.item) == true and
                         not common.isOilLantern(e2.item) == true and
-                        ( not e2.itemData or e2.itemData.timeLeft < e2.item.time  )    
+                        ( not e2.itemData or e2.itemData.timeLeft < e2.item.time  )
                     )
                 end,
                 callback = function(e3)
