@@ -60,28 +60,9 @@ function Dungeon:processLights()
         return
     end
     for reference in self.cell:iterateReferences(tes3.objectType.light) do
-        logger:trace("Processing light %s", reference.object.id)
-        if not reference.supportsLuaData then
-            logger:trace("Reference %s does not support lua data", reference.object.id)
-            --Can't support lua data
-            return
+        if common.canProcessLight(reference) then
+            logger:debug("Removing light %s", reference.object.id)
         end
-        if not reference.sceneNode then
-            logger:trace("Reference %s has no scene node", reference.object.id)
-            --No scene node
-            return
-        end
-        if (config.staticLightsOnly and reference.object.canCarry) then
-            logger:trace("Reference %s is a carryable light", reference.object.id)
-            --Carryable light when staticLightsOnly is set
-            return
-        end
-        if not common.isSwitchable(reference.object) then
-            logger:trace("Reference %s is not a switchable light", reference.object.id)
-            --Not a switchable light
-            return
-        end
-        logger:debug("Removing light %s", reference.object.id)
         common.removeLight(reference)
     end
     logger:debug("Dungeon %s has been processed", self.cell.id)
