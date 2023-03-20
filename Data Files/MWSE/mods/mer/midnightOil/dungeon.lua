@@ -62,8 +62,8 @@ function Dungeon:processLights()
     for reference in self.cell:iterateReferences(tes3.objectType.light) do
         if common.canProcessLight(reference) then
             logger:debug("Removing light %s", reference.object.id)
+            common.removeLight(reference)
         end
-        common.removeLight(reference)
     end
     logger:debug("Dungeon %s has been processed", self.cell.id)
     self:setProcessed()
