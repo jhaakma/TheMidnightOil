@@ -1,6 +1,6 @@
 local common = require("mer.midnightOil.common")
 
-
+---@return boolean
 local function isPlayerUnderWater()
     local cell = tes3.getPlayerCell()
     if cell.hasWater then
@@ -14,28 +14,41 @@ local function isPlayerUnderWater()
     return false
 end
 
-local function preventExpiring(light)
-    if light then
-        if light.itemData then
-            --only for lanterns and lamps, not torches
-            if common.isOilLantern(light.object) or common.isCandleLantern(light.object) then
-                if ( light.object.time and light.object.time > 0 ) and light.itemData.timeLeft < 1 then
-                    tes3.messageBox("%s has run out.", light.object.name)
-                    tes3.mobilePlayer:unequip{item = light.object}
-                end
+---@param lightObj tes3object|tes3light
+---@return boolean
+local function isLightWithTime(lightObj)
+    return lightObj.time and lightObj.time > 0
+end
+
+---@param itemData tes3itemData
+---@return boolean
+local function isLightRunningOut(itemData)
+    return itemData and itemData.timeLeft < 1
+end
+
+---@param lightStack tes3equipmentStack
+local function preventExpiring(lightStack)
+    if lightStack then
+        --only for lanterns and lamps, not torches
+        if common.isOilLantern(lightStack.object) or common.isCandleLantern(lightStack.object) then
+            if isLightWithTime(lightStack.object) and isLightRunningOut(lightStack.itemData) then
+                tes3.messageBox("%s has run out.", lightStack.object.name)
+                tes3.mobilePlayer:unequip{item = lightStack.object}
             end
         end
     end
 end
 
-local function preventDrowning(light)
-    if light then
-        if isPlayerUnderWater() then
-            tes3.player.mobile:unequip{ item = light.object }
+---@param lightStack tes3equipmentStack
+local function preventDrowning(lightStack)
+    if lightStack then
+        if isPlayerUnderWater() and isLightWithTime(lightStack.object) then
+            tes3.mobilePlayer:unequip{ item = lightStack.object }
         end
     end
 end
 
+---Prevent lights from fully expiring while in the inventory
 local function simulateSaveLights()
     if not common.modActive() then return end
     local light = tes3.getEquippedItem{
@@ -48,10 +61,12 @@ end
 event.register("simulate", simulateSaveLights)
 
 
+---Prevent equipping lights that have run out or are underwater
+---@param e equipEventData
 local function blockEquip(e)
     if not common.modActive() then return end
     if common.isCarryableLight(e.item) then
-        if e.itemData and e.itemData.timeLeft < 1 then
+        if isLightWithTime(e.item) and isLightRunningOut(e.itemData) then
             tes3.messageBox("%s has run out.", e.item.name)
             return false
         end
@@ -65,14 +80,11 @@ event.register("equip", blockEquip)
 
 
 -- turn off lights that are placed in the world which have no time left
+---@param e referenceSceneNodeCreatedEventData
 local function turnOffPlacedLightsNoFuel(e)
     if not common.modActive() then return end
     if common.isCarryableLight(e.reference.object) then
-        local hasTimeLeft = (
-            not e.reference.itemData or
-            e.reference.itemData.timeLeft > 1
-        )
-        if not hasTimeLeft then
+        if isLightWithTime(e.reference.object) and isLightRunningOut(e.reference.itemData) then
            common.removeLight(e.reference)
         end
     end
