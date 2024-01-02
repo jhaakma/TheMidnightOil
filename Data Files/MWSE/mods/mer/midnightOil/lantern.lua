@@ -80,7 +80,7 @@ event.register("equip", blockEquip)
 
 
 -- turn off lights that are placed in the world which have no time left
----@param e referenceSceneNodeCreatedEventData
+---@param e { reference: tes3reference}
 local function turnOffPlacedLightsNoFuel(e)
     if not common.modActive() then return end
     if common.isCarryableLight(e.reference.object) then
@@ -90,4 +90,16 @@ local function turnOffPlacedLightsNoFuel(e)
     end
 end
 
-event.register("referenceSceneNodeCreated", turnOffPlacedLightsNoFuel)
+
+
+event.register("loaded", function()
+    for _, cell in pairs(tes3.getActiveCells()) do
+        for ref in cell:iterateReferences(tes3.objectType.light) do
+            turnOffPlacedLightsNoFuel{ reference = ref}
+        end
+    end
+    event.register("referenceActivated", turnOffPlacedLightsNoFuel)
+    event.register("load", function()
+        event.unregister("referenceActivated", turnOffPlacedLightsNoFuel)
+    end)
+end)

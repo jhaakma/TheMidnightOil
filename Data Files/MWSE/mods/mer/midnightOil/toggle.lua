@@ -34,31 +34,39 @@ event.register("activate", onActivate, {priority = 5})
 
 
 --Turn off lights already in the world
+---@param e { reference: tes3reference }
 local function onSceneNodeCreated(e)
     if not common.modActive() then return end
-
+    if not e.reference.object.objectType == tes3.objectType.light then return end
+    if not e.reference.supportsLuaData then return end
     if e.reference.stackSize and e.reference.stackSize > 1 then
         return
     end
     if not common.isSwitchable(e.reference.object) then return end
-    if e.reference.object.isOffByDefault == true then
+    if e.reference.object.isOffByDefault then
         if e.reference.data.lightTurnedOff == nil then
             e.reference.data.lightTurnedOff = true
             e.reference.modified = true
         end
     end
-    if e.reference.object.objectType == tes3.objectType.light then
-        if e.reference.data then
-            if e.reference.data.lightTurnedOff  == true then
-                common.removeLight(e.reference)
-            elseif e.reference.object.isOffByDefault then
-                common.onLight(e.reference)
-            end
-        end
+    if e.reference.data.lightTurnedOff then
+        common.removeLight(e.reference)
+    elseif e.reference.object.isOffByDefault then
+        common.onLight(e.reference)
     end
 end
-event.register("referenceSceneNodeCreated", onSceneNodeCreated)
 
+event.register("loaded", function()
+    for _, cell in pairs(tes3.getActiveCells()) do
+        for ref in cell:iterateReferences(tes3.objectType.light) do
+            onSceneNodeCreated{ reference = ref}
+        end
+    end
+    event.register("referenceActivated", onSceneNodeCreated)
+    event.register("load", function()
+        event.unregister("referenceActivated", onSceneNodeCreated)
+    end)
+end)
 
 --Add "On"/"Off" to tooltip for lights
 local function onTooltip(e)

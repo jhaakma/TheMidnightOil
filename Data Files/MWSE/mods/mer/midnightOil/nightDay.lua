@@ -41,6 +41,10 @@ local function updateLightsInCell(cell)
             --Carryable light when staticLightsOnly is set
             return
         end
+        if not reference.sourceMod then
+            --Ignore lights placed by the player
+            return
+        end
         if not common.isSwitchable(reference.object) then
             --Not a switchable light
             return
