@@ -1,12 +1,10 @@
 local common = require("mer.midnightOil.common")
 local conf = require("mer.midnightOil.config")
 local modName = "The Midnight Oil"
+local config = conf.getConfig()
 
-local function registerMCM()
+local function createSettingsPage(template)
     local config = conf.getConfig()
-    local template = mwse.mcm.createTemplate(modName)
-    template:saveOnClose(conf.configPath, config)
-    template:register()
 
     local page = template:createSideBarPage{
         label = "Settings",
@@ -19,7 +17,7 @@ local function registerMCM()
         )
     }
 
-    do
+    do --generalCategory
         local generalCategory = page:createCategory("General Settings")
 
         generalCategory:createYesNoButton{
@@ -32,7 +30,7 @@ local function registerMCM()
             label = "Hotkey for light toggle",
             description = "Hold this key down when activating a carryable light to toggle it on or off.",
             allowCombinations = true,
-            variable = mwse.mcm:createTableVariable{ id = "toggleHotkey", table = config }
+            variable = mwse.mcm.createTableVariable{ id = "toggleHotkey", table = config }
         }
 
         generalCategory:createDropdown{
@@ -54,7 +52,7 @@ local function registerMCM()
         }
     end
 
-    do
+    do --dungeonLightsCategory
         local dungeonLightsCategory = page:createCategory("Dungeon Lights")
         dungeonLightsCategory:createYesNoButton{
             label = "Turn dungeon lights off by default",
@@ -63,7 +61,7 @@ local function registerMCM()
         }
     end
 
-    do
+    do --nightDayCategory
         local nightDayCategory = page:createCategory("Town Lights Day/Night Toggle")
 
         nightDayCategory:createYesNoButton{
@@ -113,6 +111,39 @@ local function registerMCM()
             variable = mwse.mcm.createTableVariable{ id = "varianceInMinutes", table = config }
         }
     end
+end
 
+---@type string[]
+local cells
+local function createExclusionsPage(template)
+    template:createExclusionsPage{
+        label = "Blacklist",
+        description = "Add cells to the blacklist to prevent lights from being turned off in them. This is useful for cells with lights that should never be turned off, such as the Molag Mar waistworks.",
+        leftListLabel = "Blacklisted Cells",
+        rightListLabel = "Whitelisted Cells",
+        variable = mwse.mcm.createTableVariable{ id = "cellBlacklist", table = config },
+        filters = {
+            {
+                label = "Cells",
+                callback = function()
+                    if cells then return cells end
+                    cells = {}
+                    for _, cell in ipairs(tes3.dataHandler.nonDynamicData.cells) do
+                        table.insert(cells, cell.editorName)
+                    end
+                    table.sort(cells)
+                    return cells
+                end
+            }
+        }
+    }
+end
+
+local function registerMCM()
+    local template = mwse.mcm.createTemplate(modName)
+    template:saveOnClose(conf.configPath, config)
+    template:register()
+    createSettingsPage(template)
+    createExclusionsPage(template)
 end
 event.register("modConfigReady", registerMCM)

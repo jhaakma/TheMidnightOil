@@ -20,6 +20,10 @@ local function doUpdateLight(reference)
 end
 
 local function updateLightsInCell(cell)
+    if common.cellIsBlacklisted(cell) then
+        --Cell is excluded
+        return
+    end
     if config.settlementsOnly and not cell.restingIsIllegal then
         -- Only update lights in settlements
         return

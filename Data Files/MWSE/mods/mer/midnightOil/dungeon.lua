@@ -24,6 +24,10 @@ end
 ---@param cell tes3cell
 function Dungeon:new(cell)
     logger:debug("Attempting to create dungeon for cell %s", cell.id)
+    if common.cellIsBlacklisted(cell) then
+        logger:debug("Cell %s is blacklisted", cell.id)
+        return nil
+    end
     if not Dungeon.cellIsDungeon(cell) then
         logger:debug("Cell %s is not a dungeon", cell.id)
         return nil

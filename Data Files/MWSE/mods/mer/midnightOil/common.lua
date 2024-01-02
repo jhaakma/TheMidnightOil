@@ -90,6 +90,12 @@ function this.isBlacklisted(obj)
     return this.blacklist[obj.id:lower()]
 end
 
+---@return boolean
+function this.cellIsBlacklisted(cell)
+    return config.cellBlacklist[cell.editorName]
+end
+
+
 function this.modActive()
     return conf.getConfig().enabled == true
 end
@@ -293,15 +299,15 @@ function this.onLight(lightRef)
     local lightNode = niPointLight.new()
     lightNode.name = "LIGHTNODE"
     if lightRef.object.color then
-        lightNode.ambient = tes3vector3.new(0,0,0)
+        lightNode.ambient = tes3vector3.new(0,0,0)--[[@as niColor]]
         lightNode.diffuse = tes3vector3.new(
             lightRef.object.color[1] / 255,
             lightRef.object.color[2] / 255,
             lightRef.object.color[3] / 255
-        )
+        )--[[@as niColor]]
     else
-        lightNode.ambient = tes3vector3.new(0,0,0)
-        lightNode.diffuse = tes3vector3.new(1, 1, 1)
+        lightNode.ambient = tes3vector3.new(0,0,0)--[[@as niColor]]
+        lightNode.diffuse = tes3vector3.new(1, 1, 1)--[[@as niColor]]
     end
     lightNode:setAttenuationForRadius(lightRef.object.radius)
     --see if there's an attachlight node to work with
@@ -311,7 +317,7 @@ function this.onLight(lightRef)
     attachLight:attachChild(lightNode)
 
     lightRef.sceneNode:update()
-    lightRef.sceneNode:updateNodeEffects()
+    lightRef.sceneNode:updateEffects()
     lightRef:getOrCreateAttachedDynamicLight(lightNode, 1.0)
 end
 

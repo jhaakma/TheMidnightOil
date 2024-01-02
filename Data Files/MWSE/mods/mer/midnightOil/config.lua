@@ -1,6 +1,8 @@
+---@class MidnightOil.Config
 local this = {}
 this.configPath = "midnightOil"
 local inMemConfig
+---@class MidnightOil.Config.mcm
 this.defaultValues = {
     enabled = true,
     toggleHotkey = {
@@ -15,7 +17,13 @@ this.defaultValues = {
     staticLightsOnly = true,
     dungeonLightsOff = true,
     logLevel = "INFO",
+    ---A list of cells to NOT turn lights off for.
+    ---@type table<string, boolean>
+    cellBlacklist = {
+        ["Molag Mar, Waistworks"] = true
+    }
 }
+---@return MidnightOil.Config.mcm
 function this.getConfig()
     inMemConfig = inMemConfig or mwse.loadConfig(this.configPath, this.defaultValues)
     return inMemConfig
@@ -32,14 +40,5 @@ function this.saveConfigValue(key, val)
     end
 end
 
---Returns if an object is blocked by the MCM
-function this.getIsBlocked(obj)
-    local config = this.getConfig()
-    local mod = obj.sourceMod and obj.sourceMod:lower()
-    return (
-        config.blocked[obj.id] or
-        config.blocked[mod]
-    )
-end
 
 return this
