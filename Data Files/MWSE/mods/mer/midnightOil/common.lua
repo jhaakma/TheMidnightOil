@@ -271,6 +271,10 @@ local function isCollisionNode(node)
     return node:isInstanceOfType(tes3.niType.RootCollisionNode)
 end
 
+local function isSwitchNode(node)
+    return node:isInstanceOfType(tes3.niType.NiSwitchNode)
+end
+
 ---@param lightRef tes3reference
 function this.onLight(lightRef)
     if not lightRef.supportsLuaData then return end
@@ -280,7 +284,6 @@ function this.onLight(lightRef)
         return
     end
     local newNode = tes3.loadMesh(lightRef.object.mesh):clone()
-
     --[[
         Remove existing children and reattach them from the base mesh,
         to restore light properties. Ignore collision node to avoid
@@ -288,12 +291,16 @@ function this.onLight(lightRef)
     ]]
     for i, childNode in ipairs(lightRef.sceneNode.children) do
         if childNode and not isCollisionNode(childNode) then
-            lightRef.sceneNode:detachChildAt(i)
+            if not isSwitchNode(childNode) then
+                lightRef.sceneNode:detachChildAt(i)
+            end
         end
     end
     for i, childNode in ipairs(newNode.children) do
-        if childNode and not isCollisionNode(childNode) then
-            lightRef.sceneNode:attachChild(newNode.children[i], true)
+        if childNode and (not isCollisionNode(childNode)) then
+            if not isSwitchNode(childNode) then
+                lightRef.sceneNode:attachChild(newNode.children[i], true)
+            end
         end
     end
     local lightNode = niPointLight.new()
@@ -315,12 +322,9 @@ function this.onLight(lightRef)
     local windowsGlowAttach = lightRef.sceneNode:getObjectByName("NightDaySwitch")
     attachLight = attachLight or windowsGlowAttach or lightRef.sceneNode
     attachLight:attachChild(lightNode)
-
     lightRef.sceneNode:update()
     lightRef.sceneNode:updateEffects()
     lightRef:getOrCreateAttachedDynamicLight(lightNode, 1.0)
 end
-
-
 
 return this
