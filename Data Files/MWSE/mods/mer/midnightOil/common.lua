@@ -219,6 +219,9 @@ function this.canProcessLight(reference)
     return true
 end
 
+---Removes the light by
+---traversing the scene node and
+---deleting lights, particles and emissives
 function this.removeLight(ref)
     ref:deleteDynamicLightAttachment()
     tes3.removeSound{reference=ref}
@@ -267,64 +270,32 @@ function this.removeLight(ref)
     ref.modified = true
 end
 
-local function isCollisionNode(node)
-    return node:isInstanceOfType(tes3.niType.RootCollisionNode)
-end
-
-local function isSwitchNode(node)
-    return node:isInstanceOfType(tes3.niType.NiSwitchNode)
-end
-
+---Turns the light back on by creating a new
+---reference with the same data as the old one
 ---@param lightRef tes3reference
 function this.onLight(lightRef)
     if not lightRef.supportsLuaData then return end
-    lightRef.data.lightTurnedOff = false
-    lightRef.modified = true
-    if (not lightRef.object.mesh) or (string.len(lightRef.object.mesh) == 0) then
-        return
+    local data = lightRef.data
+    data.lightTurnedOff = false
+
+    local newRef = tes3.createReference{
+        object = lightRef.object,
+        position = lightRef.position:copy(),
+        orientation = lightRef.orientation:copy(),
+        cell = lightRef.cell
+    }
+    newRef.scale = lightRef.scale
+
+    for k, v in pairs(data) do
+        newRef.data[k] = v
     end
-    local newNode = tes3.loadMesh(lightRef.object.mesh):clone()
-    --[[
-        Remove existing children and reattach them from the base mesh,
-        to restore light properties. Ignore collision node to avoid
-        crashes from collision detection.
-    ]]
-    for i, childNode in ipairs(lightRef.sceneNode.children) do
-        if childNode and not isCollisionNode(childNode) then
-            if not isSwitchNode(childNode) then
-                lightRef.sceneNode:detachChildAt(i)
-            end
-        end
+
+    if lightRef.itemData then
+        newRef.itemData = lightRef.itemData
+        lightRef.itemData = nil
     end
-    for i, childNode in ipairs(newNode.children) do
-        if childNode and (not isCollisionNode(childNode)) then
-            if not isSwitchNode(childNode) then
-                lightRef.sceneNode:attachChild(newNode.children[i], true)
-            end
-        end
-    end
-    local lightNode = niPointLight.new()
-    lightNode.name = "LIGHTNODE"
-    if lightRef.object.color then
-        lightNode.ambient = tes3vector3.new(0,0,0)--[[@as niColor]]
-        lightNode.diffuse = tes3vector3.new(
-            lightRef.object.color[1] / 255,
-            lightRef.object.color[2] / 255,
-            lightRef.object.color[3] / 255
-        )--[[@as niColor]]
-    else
-        lightNode.ambient = tes3vector3.new(0,0,0)--[[@as niColor]]
-        lightNode.diffuse = tes3vector3.new(1, 1, 1)--[[@as niColor]]
-    end
-    lightNode:setAttenuationForRadius(lightRef.object.radius)
-    --see if there's an attachlight node to work with
-    local attachLight = lightRef.sceneNode:getObjectByName("attachLight")
-    local windowsGlowAttach = lightRef.sceneNode:getObjectByName("NightDaySwitch")
-    attachLight = attachLight or windowsGlowAttach or lightRef.sceneNode
-    attachLight:attachChild(lightNode)
-    lightRef.sceneNode:update()
-    lightRef.sceneNode:updateEffects()
-    lightRef:getOrCreateAttachedDynamicLight(lightNode, 1.0)
+    newRef.modified = true
+    lightRef:delete()
 end
 
 return this
