@@ -51,8 +51,6 @@ local function onSceneNodeCreated(e)
     end
     if e.reference.data.lightTurnedOff then
         common.removeLight(e.reference)
-    elseif e.reference.object.isOffByDefault then
-        common.onLight(e.reference)
     end
 end
 
@@ -62,11 +60,9 @@ event.register("loaded", function()
             onSceneNodeCreated{ reference = ref}
         end
     end
-    event.register("referenceActivated", onSceneNodeCreated)
-    event.register("load", function()
-        event.unregister("referenceActivated", onSceneNodeCreated)
-    end)
 end)
+
+event.register("referenceActivated", onSceneNodeCreated)
 
 --Add "On"/"Off" to tooltip for lights
 local function onTooltip(e)

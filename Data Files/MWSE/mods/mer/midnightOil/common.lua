@@ -59,7 +59,6 @@ this.oilSource = {
 this.lightPatterns = {
     "candle",
     "lantern",
-    "brazier",
     "lamp",
     "chandelier",
     "sconce",
@@ -278,8 +277,21 @@ function this.onLight(lightRef)
     local data = lightRef.data
     data.lightTurnedOff = false
 
+
+    local object = lightRef.object
+    if lightRef.object.isOffByDefault then
+        local onId = lightRef.object.id:lower():gsub("_off$", "")
+        local onObject = tes3.getObject(onId)
+        if onObject then
+            logger:debug("Found on version of %s", lightRef.object.id)
+            object = onObject
+        else
+            logger:debug("No on version of %s", lightRef.object.id)
+        end
+    end
+
     local newRef = tes3.createReference{
-        object = lightRef.object,
+        object = object,
         position = lightRef.position:copy(),
         orientation = lightRef.orientation:copy(),
         cell = lightRef.cell

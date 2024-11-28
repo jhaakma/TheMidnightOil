@@ -57,6 +57,10 @@ function Dungeon:setProcessed()
     tes3.player.data.tmo_processedDungeons[self.cell.id] = true
 end
 
+function Dungeon:isValidLight(reference)
+    return common.canProcessLight(reference)
+end
+
 function Dungeon:processLights()
     logger:debug("Processing dungeon %s", self.cell.id)
     if self:isProcessed() then
@@ -64,7 +68,7 @@ function Dungeon:processLights()
         return
     end
     for reference in self.cell:iterateReferences(tes3.objectType.light) do
-        if common.canProcessLight(reference) then
+        if self:isValidLight(reference) then
             logger:debug("Removing light %s", reference.object.id)
             common.removeLight(reference)
         end
