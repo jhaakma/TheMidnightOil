@@ -267,6 +267,11 @@ function this.removeLight(ref)
     ref.sceneNode:updateNodeEffects()
     ref.data.lightTurnedOff = true
     ref.modified = true
+
+    ---@class MidnightOil.lightOnOffEventData
+    ---@field reference tes3reference The light that was toggled on/off
+
+    event.trigger("Midnight Oil: light off", { reference = ref })
 end
 
 ---Turns the light back on by creating a new
@@ -308,6 +313,8 @@ function this.onLight(lightRef)
     end
     newRef.modified = true
     lightRef:delete()
+
+    event.trigger("Midnight Oil: light on", { reference = newRef })
 end
 
 return this
