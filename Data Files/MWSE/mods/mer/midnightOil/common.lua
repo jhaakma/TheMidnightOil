@@ -1,25 +1,30 @@
-local this = {}
+---@class MidnightOil.common
+local common = {}
+
+---@class MidnightOil.LightToggleEventData
+---@field reference tes3reference The reference being turned on or off
+
 local conf = require("mer.midnightOil.config")
 local config = conf.getConfig()
 
 ---@type mwseLogger[]
-this.loggers = {}
+common.loggers = {}
 --- Create a new logger
 ---@param name string
 ---@return table<string, mwseLogger>
-this.createLogger = function(name)
+common.createLogger = function(name)
     local MwseLogger = require("logging.logger")
     local logger = MwseLogger.new{
         name = string.format("Midnight Oil - %s", name),
         logLevel = conf.getConfig().logLevel,
         includeTimestamp = true,
     }
-    this.loggers[name] = logger
+    common.loggers[name] = logger
     return logger
 end
-local logger = this.createLogger("Common")
+local logger = common.createLogger("Common")
 
-this.merchantContainers = {
+common.merchantContainers = {
     ["ra'virr"] = "mer_lntrn_merch",
     ["arrille"] = "mer_lntrn_merch",
     ["mebestian ence"] = "mer_lntrn_merch",
@@ -37,26 +42,26 @@ this.merchantContainers = {
     ["berwen"] = "mer_lntrn_merch",
 }
 
-this.merchantClassContainers = {
+common.merchantClassContainers = {
     t_sky_publican = "mer_lntrn_merch",
     t_cyr_publican = "mer_lntrn_merch",
     publican = "mer_lntrn_merch",
     pawnbroker = "mer_lntrn_merch",
 }
 
-this.oil = {
+common.oil = {
     ["mer_lntrn_flask"] = true
 }
 
-this.candle = {
+common.candle = {
     ["mer_lntrn_candle"] = true
 }
 
-this.oilSource = {
+common.oilSource = {
     ["terrain_ashmire_02"] = true
 }
 
-this.lightPatterns = {
+common.lightPatterns = {
     "candle",
     "lantern",
     "lamp",
@@ -71,12 +76,12 @@ this.lightPatterns = {
     "ab_light_comsconsilv",
 }
 
-this.candlePatterns = {
+common.candlePatterns = {
     "candle",
     "lantern"
 }
 
-this.oilLanterns = {
+common.oilLanterns = {
     --lamps
     ["light_com_redware_lamp"] = true,
     ["light_de_buglamp_01"] = true,
@@ -84,22 +89,22 @@ this.oilLanterns = {
     ["light_de_buglamp_01_off"] = true,
 }
 
-this.blacklist = {}
-function this.isBlacklisted(obj)
-    return this.blacklist[obj.id:lower()]
+common.blacklist = {}
+function common.isBlacklisted(obj)
+    return common.blacklist[obj.id:lower()]
 end
 
 ---@return boolean
-function this.cellIsBlacklisted(cell)
+function common.cellIsBlacklisted(cell)
     return config.cellBlacklist[cell.editorName]
 end
 
 
-function this.modActive()
+function common.modActive()
     return conf.getConfig().enabled == true
 end
 
-function this.wasToggledToday(reference)
+function common.wasToggledToday(reference)
     return (
         reference.data and
         reference.data.dayLightManuallyToggled and
@@ -107,13 +112,13 @@ function this.wasToggledToday(reference)
     )
 end
 
-function this.setToggledDay(reference)
+function common.setToggledDay(reference)
     reference.data.dayLightManuallyToggled = tes3.worldController.daysPassed.value
 end
 
-function this.isSwitchable(obj)
-    if this.isBlacklisted(obj) then return end
-    for _, pattern in ipairs(this.lightPatterns) do
+function common.isSwitchable(obj)
+    if common.isBlacklisted(obj) then return end
+    for _, pattern in ipairs(common.lightPatterns) do
         if string.find(obj.id:lower(), pattern) then
             return true
         end
@@ -121,22 +126,22 @@ function this.isSwitchable(obj)
     return false
 end
 
-function this.isOilSource(obj)
-    if this.isBlacklisted(obj) then return end
+function common.isOilSource(obj)
+    if common.isBlacklisted(obj) then return end
     obj = obj.baseObject or obj
-    return this.oilSource[obj.id:lower()]
+    return common.oilSource[obj.id:lower()]
 end
 
-function this.isOil(obj)
-    if this.isBlacklisted(obj) then return end
+function common.isOil(obj)
+    if common.isBlacklisted(obj) then return end
     obj = obj.baseObject or obj
-    return this.oil[obj.id:lower()]
+    return common.oil[obj.id:lower()]
 end
 
-function this.isCandleLantern(obj)
-    if this.isBlacklisted(obj) then return end
-    if this.isCarryableLight(obj) then
-        for _, pattern in ipairs(this.candlePatterns) do
+function common.isCandleLantern(obj)
+    if common.isBlacklisted(obj) then return end
+    if common.isCarryableLight(obj) then
+        for _, pattern in ipairs(common.candlePatterns) do
             if string.find(obj.id:lower(), pattern) then
                 return true
             end
@@ -145,38 +150,38 @@ function this.isCandleLantern(obj)
     return false
 end
 
-function this.isCandle(obj)
-    if this.isBlacklisted(obj) then return end
+function common.isCandle(obj)
+    if common.isBlacklisted(obj) then return end
     obj = obj.baseObject or obj
-    return this.candle[obj.id:lower()]
+    return common.candle[obj.id:lower()]
 end
 
 --Is an oil lantern
-function this.isOilLantern(obj)
-    if this.isBlacklisted(obj) then return end
+function common.isOilLantern(obj)
+    if common.isBlacklisted(obj) then return end
     obj = obj.baseObject or obj
 
     local isOilLantern = (
         obj.objectType == tes3.objectType.light and
-        this.oilLanterns[obj.id:lower()] == true
+        common.oilLanterns[obj.id:lower()] == true
     )
     return isOilLantern
 end
 
 --is a carryable light
-function this.isCarryableLight(obj)
-    if this.isBlacklisted(obj) then
+function common.isCarryableLight(obj)
+    if common.isBlacklisted(obj) then
         return false
     end
-    if this.blacklist[obj.id:lower()] then
+    if common.blacklist[obj.id:lower()] then
         return false
     end
     return obj.objectType == tes3.objectType.light and obj.canCarry
 end
 
-function this.isLight(obj)
-    if this.isBlacklisted(obj) then return end
-    return  this.isCandleLantern(obj)
+function common.isLight(obj)
+    if common.isBlacklisted(obj) then return end
+    return  common.isCandleLantern(obj)
 end
 
 local function traverse(roots)
@@ -193,7 +198,7 @@ local function traverse(roots)
     return coroutine.wrap(iter)
 end
 
-function this.canProcessLight(reference)
+function common.canProcessLight(reference)
     logger:trace("Processing light %s", reference.object.id)
     if not reference.supportsLuaData then
         logger:trace("Reference %s does not support lua data", reference.object.id)
@@ -210,7 +215,7 @@ function this.canProcessLight(reference)
         --Carryable light when staticLightsOnly is set
         return false
     end
-    if not this.isSwitchable(reference.object) then
+    if not common.isSwitchable(reference.object) then
         logger:trace("Reference %s is not a switchable light", reference.object.id)
         --Not a switchable light
         return false
@@ -221,7 +226,8 @@ end
 ---Removes the light by
 ---traversing the scene node and
 ---deleting lights, particles and emissives
-function this.removeLight(ref)
+function common.removeLight(ref)
+    event.trigger("MidnightOil:RemoveLight", {reference = ref})
     ref:deleteDynamicLightAttachment()
     tes3.removeSound{reference=ref}
     local lightNode = ref.sceneNode
@@ -267,13 +273,15 @@ function this.removeLight(ref)
     ref.sceneNode:updateNodeEffects()
     ref.data.lightTurnedOff = true
     ref.modified = true
+    event.trigger("MidnightOil:RemovedLight", {reference = ref})
 end
 
 ---Turns the light back on by creating a new
 ---reference with the same data as the old one
 ---@param lightRef tes3reference
-function this.onLight(lightRef)
+function common.onLight(lightRef)
     if not lightRef.supportsLuaData then return end
+    event.trigger("MidnightOil:TurnLightOn", {reference = lightRef})
     local data = lightRef.data
     data.lightTurnedOff = false
 
@@ -308,6 +316,8 @@ function this.onLight(lightRef)
     end
     newRef.modified = true
     lightRef:delete()
+
+    event.trigger("MidnightOil:TurnedLightOn", {reference = newRef})
 end
 
-return this
+return common
