@@ -228,6 +228,7 @@ end
 ---deleting lights, particles and emissives
 function common.removeLight(ref)
     event.trigger("MidnightOil:RemoveLight", {reference = ref})
+    logger:debug("Removing light %s", ref.object.id)
     ref:deleteDynamicLightAttachment()
     tes3.removeSound{reference=ref}
     local lightNode = ref.sceneNode
@@ -282,6 +283,7 @@ end
 function common.onLight(lightRef)
     if not lightRef.supportsLuaData then return end
     event.trigger("MidnightOil:TurnLightOn", {reference = lightRef})
+    logger:debug("Turning light %s on", lightRef.object.id)
     local data = lightRef.data
     data.lightTurnedOff = false
 
@@ -316,6 +318,7 @@ function common.onLight(lightRef)
     end
     newRef.modified = true
     lightRef:delete()
+    logger:debug("Light %s turned on, old ref deleted", newRef.object.id)
 
     event.trigger("MidnightOil:TurnedLightOn", {reference = newRef})
 end
