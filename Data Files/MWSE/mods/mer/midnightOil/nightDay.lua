@@ -37,6 +37,7 @@ local function updateLightsInCell(cell)
         if reference.disabled then
             --Reference is disabled
             logger:trace("Reference %s is disabled", reference.object.id)
+            return false
         end
         if reference.deleted then
             --Reference is deleted
@@ -100,7 +101,7 @@ local function onSimulate(e)
         end
     end
 end
-event.register("simulate", onSimulate)
+--event.register("simulate", onSimulate)
 
 
 local function turnOffDungeonLights()
