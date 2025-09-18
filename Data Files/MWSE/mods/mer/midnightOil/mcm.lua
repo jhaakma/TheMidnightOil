@@ -71,7 +71,7 @@ local function createSettingsPage(template)
         }
         nightDayCategory:createYesNoButton{
             label = "Toggle static lights only",
-            description = "If enabled, lights will only turn off during the day if they are static (can not be picked up). If disabled, lights you place outdoors will toggle on and off based on time of day. Toggling a light manually will delay this untl the next day.",
+            description = "If enabled, lights will only turn off during the day if they are static (can not be picked up). If disabled, lights you place outdoors will toggle on and off based on time of day. Toggling a light manually will delay this until the next day.",
             variable = mwse.mcm.createTableVariable{ id = "staticLightsOnly", table = config }
         }
 
